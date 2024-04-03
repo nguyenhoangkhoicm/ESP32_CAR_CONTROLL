@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Control</title>
+  <!-- Add Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <style>
+    .container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .btn-circle {
+      width: 80px;
+      height: 80px;
+      padding: 10px 16px;
+      border-radius: 50%;
+      font-size: 24px;
+      line-height: 1.33;
+      text-align: center;
+    }
+    #stop {
+      margin: 20px;
+    }
+    .control-panel {
+      border: 2px solid #000;
+      padding: 20px;
+      border-radius: 15px;
+    }
+    .speed-control {
+      margin-top: 20px;
+    }
+    .speed-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ESP32 Control</h1>
+    <div class="control-panel">
+      <button id="forward" class="btn btn-primary btn-circle">Direct</button>
+      <div class="d-flex justify-content-center">
+        <button id="left" class="btn btn-primary btn-circle">Left</button>
+        <button id="stop" class="btn btn-danger btn-circle">Stop</button>
+        <button id="right" class="btn btn-primary btn-circle">Right</button>
+      </div>
+      <button id="backward" class="btn btn-primary btn-circle">Backward</button>
+      <!-- <div class="speed-control">
+        <input id="speedInput" type="number" min="0" max="255" step="10" value="100" class="form-control">
+        <button id="speedBtn" class="btn btn-primary speed-btn">Speed</button>
+      </div> -->
+    </div>
+  </div>
+
+  <script>
+    var socket = new WebSocket("ws://192.168.120.225/ws");
+
+    function sendCommand(command) {
+      socket.send(command);
+    }
+
+    document.getElementById("forward").addEventListener("click", function() {
+      sendCommand("forward");
+    });
+
+    document.getElementById("backward").addEventListener("click", function() {
+      sendCommand("backward");
+    });
+
+    document.getElementById("left").addEventListener("click", function() {
+      sendCommand("left");
+    });
+
+    document.getElementById("right").addEventListener("click", function() {
+      sendCommand("right");
+    });
+
+    document.getElementById("stop").addEventListener("click", function() {
+      sendCommand("stop");
+    });
+
+    // document.getElementById("speedBtn").addEventListener("click", function() {
+    //   var speed = document.getElementById("speedInput").value;
+    //   var command = "speed:" + speed;
+    //   sendCommand(command);
+    // });
+  </script>
+</body>
+</html>
