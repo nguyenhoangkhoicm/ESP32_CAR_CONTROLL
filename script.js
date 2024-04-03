@@ -1,4 +1,4 @@
-var socket = new WebSocket("ws://192.168.120.225/ws");
+var socket = new WebSocket("wss://192.168.120.225/ws");
 
 function sendCommand(command) {
   socket.send(command);
