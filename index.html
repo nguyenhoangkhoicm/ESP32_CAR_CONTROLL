@@ -2,73 +2,404 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Web Control</title>
 
-  <title>ESP32 Control</title>
-  <!-- Add Bootstrap CSS -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self' https://stackpath.bootstrapcdn.com; connect-src 'self' ws: wss: 192.168.120.225;">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .phone-screen {
+            max-width: 500px;
+            /* Điều chỉnh chiều rộng tối đa của khung điện thoại */
+            margin: 0 auto;
+            margin-top: 50px;
+            padding: 20px;
+            border-radius: 20px;
+            background-color: #f1f1f1;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
 
+        .col-md-6 {
+            flex: 1;
+        }
+
+        .o-pad {
+            position: relative;
+            background: #ddd;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-top: 12%;
+            background-color: rgb(36, 103, 228);
+        }
+
+        .o-pad:after {
+            content: '';
+            position: absolute;
+            z-index: 2;
+            width: 20%;
+            height: 20%;
+            top: 50%;
+            left: 50%;
+            background: #ddd;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            transition: all 0.25s;
+            cursor: pointer;
+        }
+
+        .o-pad:hover:after {
+            width: 30%;
+            height: 30%;
+        }
+
+        .o-pad a {
+            display: block;
+            position: absolute;
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+            width: 50%;
+            height: 50%;
+            text-align: center;
+            transform: rotate(45deg);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .o-pad a:before {
+            content: '';
+            position: absolute;
+            width: 60%;
+            height: 60%;
+            top: 50%;
+            left: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.25s;
+            cursor: pointer;
+            display: none;
+        }
+
+        .o-pad a:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-radius: 5px;
+            border-style: solid;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            transition: all 0.25s;
+        }
+
+        .o-pad a.up {
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, -20%) rotate(45deg);
+            border-top-left-radius: 50%;
+            z-index: 1;
+        }
+
+        .o-pad a.up:hover {
+            background: linear-gradient(315deg, rgba(255, 255, 255, 0) 15%, rgba(255, 255, 255, 0.4) 100%);
+        }
+
+        .o-pad a.up:before {
+            left: 57%;
+            top: 57%;
+        }
+
+        .o-pad a.up:after {
+            left: 53%;
+            top: 53%;
+            border-width: 0 13px 19px 13px;
+            border-color: transparent transparent #aaa transparent;
+        }
+
+        .o-pad a.up:active:after {
+            border-bottom-color: #333;
+        }
+
+        .o-pad a.down {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, 20%) rotate(45deg);
+            border-bottom-right-radius: 50%;
+            z-index: 1;
+        }
+
+        .o-pad a.down:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0) 15%, rgba(255, 255, 255, 0.4) 100%);
+        }
+
+        .o-pad a.down:before {
+            left: 43%;
+            top: 43%;
+        }
+
+        .o-pad a.down:after {
+            left: 47%;
+            top: 47%;
+            border-width: 19px 13px 0px 13px;
+            border-color: #aaa transparent transparent transparent;
+        }
+
+        .o-pad a.down:active:after {
+            border-top-color: #333;
+        }
+
+        .o-pad a.left {
+            top: 50%;
+            right: 50%;
+            transform: translate(-20%, -50%) rotate(45deg);
+            border-bottom-left-radius: 50%;
+            border: none;
+        }
+
+        .o-pad a.left:hover {
+            background: linear-gradient(225deg, rgba(255, 255, 255, 0) 15%, rgba(255, 255, 255, 0.4) 100%);
+        }
+
+        .o-pad a.left:before {
+            left: 57%;
+            top: 43%;
+        }
+
+        .o-pad a.left:after {
+            left: 53%;
+            top: 47%;
+            border-width: 13px 19px 13px 0;
+            border-color: transparent #aaa transparent transparent;
+        }
+
+        .o-pad a.left:active:after {
+            border-right-color: #333;
+        }
+
+        .o-pad a.right {
+            top: 50%;
+            left: 50%;
+            transform: translate(20%, -50%) rotate(45deg);
+            border-top-right-radius: 50%;
+            border: none;
+        }
+
+        .o-pad a.right:hover {
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0) 15%, rgba(255, 255, 255, 0.4) 100%);
+        }
+
+        .o-pad a.right:before {
+            left: 43%;
+            top: 57%;
+        }
+
+        .o-pad a.right:after {
+            left: 47%;
+            top: 53%;
+            border-width: 13px 0 13px 19px;
+            border-color: transparent transparent transparent #aaa;
+        }
+
+        .o-pad a.right:active:after {
+            border-left-color: #333;
+        }
+
+        .o-pad a:hover:after {
+            left: 50%;
+            top: 50%;
+        }
+
+        .dark .o-pad {
+            background: #111;
+        }
+
+        .dark .o-pad a {
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .dark .o-pad a:before {
+            display: block;
+        }
+
+        .dark .o-pad:before,
+        .dark .o-pad a {
+            background: #111;
+        }
+
+        .dark .o-pad a.up:after {
+            border-bottom-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .dark .o-pad a.right:after {
+            border-left-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .dark .o-pad a.down:after {
+            border-top-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .dark .o-pad a.left:after {
+            border-right-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .dark .o-pad a.up:active:after {
+            border-bottom-color: #61e22d;
+        }
+
+        .dark .o-pad a.right:active:after {
+            border-left-color: #61e22d;
+        }
+
+        .dark .o-pad a.down:active:after {
+            border-top-color: #61e22d;
+        }
+
+        .dark .o-pad a.left:active:after {
+            border-right-color: #61e22d;
+        }
+
+        .speed-control {
+            text-align: center;
+            margin-top: 30px;
+            border: 2px solid #aaa;
+            padding: 20px;
+            border-radius: 15px;
+            background-color: #f1f1f1;
+        }
+
+        #speed,
+        #info {
+            margin-top: 10px;
+        }
+
+        .additional-controls {
+            margin-top: 20px;
+        }
+
+        .additional-controls button {
+            margin: 5px;
+        }
+
+        #toggle-switch {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 60px;
+            height: 30px;
+            background: #ddd;
+            outline: none;
+            border: none;
+            border-radius: 15px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        #toggle-switch:checked {
+            background-color: #28a745;
+        }
+
+        #toggle-switch::before {
+            content: '';
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: #fff;
+            border-radius: 50%;
+            top: 1px;
+            left: 1px;
+            transition: 0.2s;
+        }
+
+        #toggle-switch:checked::before {
+            left: 31px;
+        }
+
+        #toggle-switch:focus::before {
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.12);
+        }
+    </style>
 </head>
 
 <body>
-  <style>
-    .container {
-      text-align: center;
-      margin-top: 50px;
-    }
 
-    .btn-circle {
-      width: 80px;
-      height: 80px;
-      padding: 10px 16px;
-      border-radius: 50%;
-      font-size: 24px;
-      line-height: 1.33;
-      text-align: center;
-    }
+    <div class="phone-screen">
+        <h1 class="text-center">ESP32 Web Control</h1>
 
-    #stop {
-      margin: 20px;
-    }
-
-    .control-panel {
-      border: 2px solid #000;
-      padding: 20px;
-      border-radius: 15px;
-    }
-
-    .speed-control {
-      margin-top: 20px;
-    }
-
-    .speed-btn {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      font-size: 18px;
-    }
-  </style>
-  <div class="container">
-    <h1>ESP32 Control</h1>
-    <div class="control-panel">
-      <button id="forward" class="btn btn-primary btn-circle">Direct</button>
-      <div class="d-flex justify-content-center">
-        <button id="left" class="btn btn-primary btn-circle">Left</button>
-        <button id="stop" class="btn btn-danger btn-circle">Stop</button>
-        <button id="right" class="btn btn-primary btn-circle">Right</button>
-      </div>
-      <button id="backward" class="btn btn-primary btn-circle">Backward</button>
-      <!-- <div class="speed-control">
-        <input id="speedInput" type="number" min="0" max="255" step="10" value="100" class="form-control">
-        <button id="speedBtn" class="btn btn-primary speed-btn">Speed</button>
-      </div> -->
+        <div class="container">
+            <div class="col-md-6">
+                <div class="speed-control">
+                    <label for="speed">Tốc độ:</label>
+                    <input type="range" id="speed" name="speed" min="90" max="200" value="90"
+                        oninput="updateSpeed(this.value)">
+                    <p id="speedValue">90</p>
+                    <label for="info">
+                        <h5>Trạng thái xe:</h5>
+                    </label>
+                    <p id="info"></p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <nav class="o-pad">
+                    <a class="up control" data-direction="up" onclick="control('forward')"></a>
+                    <a class="right control" data-direction="right" onclick="control('right')"></a>
+                    <a class="down control" data-direction="down" onclick="control('backward')"></a>
+                    <a class="left control" data-direction="left" onclick="control('left')"></a>
+                </nav>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <script src="script.js"></script>
+
+        <div class="additional-controls text-center d-flex justify-content-center">
+            <button class="btn btn-danger mr-2" onclick="control('stop')">Stop</button>
+            <label class="switch">
+                <input id="toggle-switch" type="checkbox" onclick="toggleSwitch()">
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+    </div>
+
+    <script>
+        function control(action) {
+            let direction;
+            if (action === 'forward') {
+                direction = 'đi thẳng';
+            } else if (action === 'backward') {
+                direction = 'đi lùi';
+            } else if (action === 'stop') {
+                direction = 'dừng lại';
+            } else if (action === 'left') {
+                direction = 'đi trái';
+            } else if (action === 'right') {
+                direction = 'đi phải';
+            } else if (action === 'switch') {
+                direction = 'chuyển chế độ dò line';
+            }
+            console.log("Trang thái:", direction);
+            document.getElementById("info").innerText = direction;
+            fetch('/' + action)
+                .then(response => console.log(response));
+        }
+
+        function updateSpeed(speed) {
+            document.getElementById('speedValue').innerText = speed;
+            fetch('/speed?speed=' + speed)
+                .then(response => console.log(response));
+        }
+
+        function toggleSwitch() {
+            const toggleSwitch = document.getElementById('toggle-switch');
+            toggleSwitch.checked = !toggleSwitch.checked; // Chuyển trạng thái của công tắc
+            if (toggleSwitch.checked) {
+                control('switch'); // Gửi lệnh để tắt chế độ dò line
+            }
+        }
+    </script>
+
 </body>
 
 </html>
